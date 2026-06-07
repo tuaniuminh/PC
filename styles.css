@@ -2114,6 +2114,22 @@ body {
         box-shadow: 0 0 8px rgba(99, 102, 241, 0.7) !important;
     }
     
+    /* Fix sound quick controls overlap on mobile */
+    .sound-quick-controls {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        justify-content: center !important;
+        margin-bottom: 1rem !important;
+        width: 100% !important;
+        z-index: 20 !important;
+    }
+    
+    .orb-container {
+        margin-top: 0.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
     .weekly-calendar {
         gap: 0.2rem;
     }
