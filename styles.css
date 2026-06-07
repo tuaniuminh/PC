@@ -1277,65 +1277,178 @@ body {
     .app-container {
         flex-direction: column;
     }
+    
+    /* Premium Bottom Tab Bar for Mobile */
     .sidebar {
         width: 100%;
-        height: 70px;
+        height: 68px;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: space-around;
         align-items: center;
-        padding: 0 1.5rem;
+        padding: 0 0.5rem;
         position: fixed;
-        top: 0;
+        bottom: 0;
+        top: auto;
         left: 0;
         border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border-top: 1px solid var(--border-color);
+        border-bottom: none;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.45);
+        background: rgba(8, 12, 24, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 1000;
     }
-    .brand {
-        margin-bottom: 0;
+    
+    .sidebar .brand {
+        display: none; /* Hide brand logo in bottom menu */
     }
+    
+    .sidebar .user-quick-stats {
+        display: none; /* Hide stats in bottom menu */
+    }
+    
     .nav-menu {
         flex-direction: row;
-        justify-content: flex-end;
-        gap: 0.5rem;
+        justify-content: space-around;
+        width: 100%;
+        gap: 0.25rem;
         margin-bottom: 0;
-        width: auto;
     }
+    
+    .nav-item {
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.725rem;
+        padding: 0.5rem 0.25rem;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        text-align: center;
+        background: transparent;
+        border-radius: 12px;
+    }
+    
+    .nav-item span {
+        display: block !important;
+    }
+    
+    .nav-item svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .nav-item:hover svg {
+        transform: none; /* Disable shift animation on mobile hover */
+    }
+    
+    .nav-item.active {
+        background: rgba(0, 245, 212, 0.08);
+        color: var(--color-primary);
+        box-shadow: none;
+    }
+    
+    .nav-item.active svg {
+        stroke: var(--color-primary);
+    }
+    
+    /* Main Content Area adjustments */
     .main-content {
         margin-left: 0;
         width: 100%;
-        margin-top: 70px;
-        padding: 1.5rem;
+        margin-top: 0;
+        padding: 1.25rem 1rem 5.5rem 1rem; /* Extra bottom padding for menu bar space */
     }
+    
+    .header-section {
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .header-section h1 {
+        font-size: 1.75rem;
+    }
+    
+    .header-section .subtitle {
+        font-size: 0.85rem;
+    }
+    
+    /* Card Padding Reductions for mobile screen sizes */
+    .trainer-card, .config-card, .library-container, .history-card, .stat-card {
+        padding: 1.25rem !important;
+        border-radius: 20px !important;
+    }
+    
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
+    
     .steps-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
+    
     .input-grid {
         grid-template-columns: 1fr;
         gap: 0.75rem;
     }
+    
     .schedule-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
-    .trainer-card {
-        padding: 1.5rem;
-    }
+    
+    /* Visualizer Orb Adjustments */
     .orb-container {
-        width: 240px;
-        height: 240px;
+        width: 230px;
+        height: 230px;
+        margin: 1rem 0;
     }
+    
     .visualizer-orb {
-        width: 190px;
-        height: 190px;
+        width: 180px;
+        height: 180px;
     }
+    
     .orb-timer {
         font-size: 3rem;
+    }
+    
+    .orb-action {
+        font-size: 0.8rem;
+    }
+    
+    /* Library sub-navigation scroll hiding */
+    .library-tabs {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+        gap: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .library-tabs::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+    
+    .lib-tab-btn {
+        padding: 0.5rem 0.85rem;
+        font-size: 0.85rem;
+    }
+    
+    .pane-grid {
+        gap: 1.5rem;
+    }
+    
+    .pelvic-floor-illustration {
+        padding: 1.5rem 1rem;
+    }
+    
+    .ill-circle {
+        width: 110px;
+        height: 110px;
+        margin-bottom: 1rem;
     }
 }
 
