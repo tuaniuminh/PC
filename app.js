@@ -507,16 +507,19 @@ function setupEventHandlers() {
     if (elements.linkToggleAuthMode) {
         elements.linkToggleAuthMode.addEventListener('click', () => {
             const submitBtn = elements.btnSubmitAuth;
+            const authTitle = document.getElementById('auth-title');
+            const authDesc = document.getElementById('auth-desc');
+            
             if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
-                elements.authTitle.textContent = 'Đăng Ký Tài Khoản';
-                elements.authDesc.textContent = 'Tạo tài khoản mới để bắt đầu sao lưu tiến độ lên cơ sở dữ liệu Supabase của bạn.';
+                if (authTitle) authTitle.textContent = 'Đăng Ký Tài Khoản';
+                if (authDesc) authDesc.textContent = 'Tạo tài khoản mới để bắt đầu sao lưu tiến độ lên cơ sở dữ liệu Supabase của bạn.';
                 elements.linkToggleAuthMode.textContent = 'Đã có tài khoản? Đăng nhập ngay';
                 if (submitBtn) submitBtn.textContent = 'Đăng Ký';
             } else {
                 currentAuthMode = 'login';
-                elements.authTitle.textContent = 'Đăng Nhập Đồng Bộ';
-                elements.authDesc.textContent = 'Đăng nhập tài khoản để đồng bộ hóa lịch sử luyện tập và Streak trực tuyến.';
+                if (authTitle) authTitle.textContent = 'Đăng Nhập Đồng Bộ';
+                if (authDesc) authDesc.textContent = 'Đăng nhập tài khoản để đồng bộ hóa lịch sử luyện tập và Streak trực tuyến.';
                 elements.linkToggleAuthMode.textContent = 'Chưa có tài khoản? Đăng ký ngay';
                 if (submitBtn) submitBtn.textContent = 'Đăng Nhập';
             }
