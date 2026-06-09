@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=1.0.5">
+    <link rel="stylesheet" href="styles.css?v=1.0.6">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -139,8 +139,17 @@
                         <p class="config-desc">Chọn bài tập được lập trình sẵn hoặc tùy chỉnh theo ý muốn của bạn.</p>
                         
                         <div class="levels-list">
+                            <!-- Combo Sức Mạnh -->
+                            <div class="level-item active" data-level="powerCombo">
+                                <div class="level-icon level-pow">★</div>
+                                <div class="level-info">
+                                    <span class="level-name" style="color: var(--color-primary); font-weight: 700;">Combo Sức Mạnh (Interval Đặc Biệt)</span>
+                                    <span class="level-meta">Nhấp nhả 20 lượt 1s | Siết giữ 24 lượt 3s | Tối đa 10 lượt 5s + Nghỉ phục hồi</span>
+                                </div>
+                            </div>
+
                             <!-- Beginner Level -->
-                            <div class="level-item active" data-level="beginner">
+                            <div class="level-item" data-level="beginner">
                                 <div class="level-icon level-beg">1</div>
                                 <div class="level-info">
                                     <span class="level-name">Cấp độ 1: Đánh Thức (Sơ cấp)</span>
@@ -850,6 +859,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.0.5"></script>
+    <script src="app.js?v=1.0.6"></script>
 </body>
 </html>

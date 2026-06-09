@@ -8,7 +8,7 @@ const state = {
     currentTab: 'practice',
     currentLibSubtab: 'overview',
     workoutState: 'idle', // idle, squeezing, relaxing, completed
-    selectedLevel: 'beginner',
+    selectedLevel: 'powerCombo',
     timerInterval: null,
     timeRemaining: 0,
     currentRep: 0,
@@ -25,6 +25,7 @@ const state = {
 
 // --- WORKOUT CONFIGURATIONS ---
 const levelConfigs = {
+    powerCombo: { squeeze: 1, relax: 1, reps: 57 },
     beginner: { squeeze: 3, relax: 3, reps: 10 },
     intermediate: { squeeze: 5, relax: 5, reps: 12 },
     advanced: { squeeze: 10, relax: 10, reps: 10 },
@@ -609,7 +610,9 @@ function updateUIConfigs() {
     elements.orbTimer.textContent = String(state.squeezeDuration).padStart(2, '0');
     elements.orbAction.textContent = 'SẴN SÀNG';
     
-    if (state.selectedLevel === 'mixed') {
+    if (state.selectedLevel === 'powerCombo') {
+        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Combo Sức Mạnh (Interval Đặc Biệt - 57 lượt)';
+    } else if (state.selectedLevel === 'mixed') {
         elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Cấp độ Hỗn hợp Lâm Sàng (11 lượt)';
     } else if (state.selectedLevel === 'pyramidMixed') {
         elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Hỗn hợp Kim Tự Tháp (10 lượt)';
@@ -620,7 +623,7 @@ function updateUIConfigs() {
     }
     
     // Clear classes on orb
-    elements.orb.classList.remove('squeezing', 'relaxing', 'completed');
+    elements.orb.classList.remove('squeezing', 'relaxing', 'resting', 'completed');
 }
 
 function updateSoundButtons() {
@@ -798,6 +801,22 @@ function enterSqueezePhase() {
             state.squeezeDuration = 1;
             state.relaxDuration = 1;
         }
+    } else if (state.selectedLevel === 'powerCombo') {
+        if (state.currentRep <= 20) {
+            state.squeezeDuration = 1;
+        } else if (state.currentRep === 21) {
+            state.squeezeDuration = 0;
+        } else if (state.currentRep >= 22 && state.currentRep <= 33) {
+            state.squeezeDuration = 3;
+        } else if (state.currentRep === 34) {
+            state.squeezeDuration = 0;
+        } else if (state.currentRep >= 35 && state.currentRep <= 46) {
+            state.squeezeDuration = 3;
+        } else if (state.currentRep === 47) {
+            state.squeezeDuration = 0;
+        } else {
+            state.squeezeDuration = 5;
+        }
     } else if (state.selectedLevel === 'ladder') {
         state.squeezeDuration = 9;
         state.relaxDuration = 8;
@@ -814,10 +833,16 @@ function enterSqueezePhase() {
         }
     }
 
+    if (state.squeezeDuration === 0) {
+        enterRelaxPhase();
+        return;
+    }
+
     state.timeRemaining = state.squeezeDuration;
     
     // UI Visual changes
     elements.orb.classList.remove('relaxing');
+    elements.orb.classList.remove('resting');
     elements.orb.classList.add('squeezing');
     elements.orbAction.textContent = 'SIẾT CƠ';
     
@@ -845,6 +870,16 @@ function enterSqueezePhase() {
             elements.orbSubText.textContent = 'Phản xạ: Nhấp nhanh liên tục 1s';
         } else {
             elements.orbSubText.textContent = 'Phục hồi: Giữ trung bình 5 giây';
+        }
+    } else if (state.selectedLevel === 'powerCombo') {
+        if (state.currentRep <= 20) {
+            elements.orbSubText.textContent = `Pha 1: Nhấp nhả nhanh 1s (Hiệp 1/4) - Lượt ${state.currentRep}/20`;
+        } else if (state.currentRep >= 22 && state.currentRep <= 33) {
+            elements.orbSubText.textContent = `Pha 2: Siết giữ 3 giây (Hiệp 2/4) - Lượt ${state.currentRep - 21}/12`;
+        } else if (state.currentRep >= 35 && state.currentRep <= 46) {
+            elements.orbSubText.textContent = `Pha 3: Siết giữ 3 giây (Hiệp 3/4) - Lượt ${state.currentRep - 34}/12`;
+        } else {
+            elements.orbSubText.textContent = `Pha 4: Cực hạn - Siết giữ 5 giây (Hiệp 4/4) - Lượt ${state.currentRep - 47}/10`;
         }
     } else {
         elements.orbSubText.textContent = 'Co thắt cơ PC chặt nhất có thể';
@@ -879,23 +914,66 @@ function enterRelaxPhase() {
         } else {
             state.relaxDuration = 3;
         }
+    } else if (state.selectedLevel === 'powerCombo') {
+        if (state.currentRep <= 20) {
+            state.relaxDuration = 1;
+        } else if (state.currentRep === 21) {
+            state.relaxDuration = 30;
+        } else if (state.currentRep >= 22 && state.currentRep <= 33) {
+            state.relaxDuration = 3;
+        } else if (state.currentRep === 34) {
+            state.relaxDuration = 30;
+        } else if (state.currentRep >= 35 && state.currentRep <= 46) {
+            state.relaxDuration = 3;
+        } else if (state.currentRep === 47) {
+            state.relaxDuration = 60;
+        } else {
+            state.relaxDuration = 5;
+        }
     }
 
     state.timeRemaining = state.relaxDuration;
     
     // UI Visual changes
     elements.orb.classList.remove('squeezing');
-    elements.orb.classList.add('relaxing');
-    elements.orbAction.textContent = 'THẢ LỎNG';
+    elements.orb.classList.remove('relaxing');
+    elements.orb.classList.remove('resting');
     
-    if (state.selectedLevel === 'mixed' && state.relaxDuration === 1) {
-        elements.orbSubText.textContent = 'Thả nhanh';
-    } else if (state.selectedLevel === 'pyramidMixed' && state.relaxDuration === 1) {
-        elements.orbSubText.textContent = 'Thả nhanh';
-    } else if (state.selectedLevel === 'reflexMixed' && state.relaxDuration === 1) {
-        elements.orbSubText.textContent = 'Thả nhanh';
+    const isRestRep = state.selectedLevel === 'powerCombo' && (state.currentRep === 21 || state.currentRep === 34 || state.currentRep === 47);
+    
+    if (isRestRep) {
+        elements.orb.classList.add('resting');
+        elements.orbAction.textContent = 'NGHỈ NGƠI';
+        if (state.currentRep === 21) {
+            elements.orbSubText.textContent = 'Nghỉ phục hồi (30s) - Chuẩn bị Pha 2';
+        } else if (state.currentRep === 34) {
+            elements.orbSubText.textContent = 'Nghỉ phục hồi (30s) - Chuẩn bị Pha 3';
+        } else if (state.currentRep === 47) {
+            elements.orbSubText.textContent = 'Nghỉ phục hồi (1 phút) - Chuẩn bị Pha 4';
+        }
     } else {
-        elements.orbSubText.textContent = 'Thả lỏng cơ sàn chậu hoàn toàn';
+        elements.orb.classList.add('relaxing');
+        elements.orbAction.textContent = 'THẢ LỎNG';
+        
+        if (state.selectedLevel === 'mixed' && state.relaxDuration === 1) {
+            elements.orbSubText.textContent = 'Thả nhanh';
+        } else if (state.selectedLevel === 'pyramidMixed' && state.relaxDuration === 1) {
+            elements.orbSubText.textContent = 'Thả nhanh';
+        } else if (state.selectedLevel === 'reflexMixed' && state.relaxDuration === 1) {
+            elements.orbSubText.textContent = 'Thả nhanh';
+        } else if (state.selectedLevel === 'powerCombo') {
+            if (state.currentRep <= 20) {
+                elements.orbSubText.textContent = 'Thả nhanh';
+            } else if (state.currentRep >= 22 && state.currentRep <= 33) {
+                elements.orbSubText.textContent = 'Thả lỏng 3 giây';
+            } else if (state.currentRep >= 35 && state.currentRep <= 46) {
+                elements.orbSubText.textContent = 'Thả lỏng 3 giây';
+            } else {
+                elements.orbSubText.textContent = 'Thả lỏng hoàn toàn 5 giây';
+            }
+        } else {
+            elements.orbSubText.textContent = 'Thả lỏng cơ sàn chậu hoàn toàn';
+        }
     }
     
     elements.orbTimer.textContent = String(state.timeRemaining).padStart(2, '0');
