@@ -409,6 +409,8 @@ function setupEventHandlers() {
             startWorkout();
         } else if (state.workoutState === 'squeezing' || state.workoutState === 'relaxing') {
             pauseWorkout();
+        } else if (state.workoutState.startsWith('paused_')) {
+            resumeWorkout();
         }
     });
 
@@ -642,11 +644,11 @@ function updateUIConfigs() {
     elements.orbAction.textContent = 'SẴN SÀNG';
     
     if (state.selectedLevel === 'goodMorning') {
-        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Chào Buổi Sáng (Khởi Động Nhẹ - 25 lượt)';
+        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Chào Buổi Sáng - 25 lượt';
     } else if (state.selectedLevel === 'powerCombo') {
-        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Combo Sức Mạnh (Hiệp Tập Chính - 63 lượt)';
+        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Combo Sức Mạnh - 63 lượt';
     } else if (state.selectedLevel === 'nightRecovery') {
-        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Phục Hồi Ban Đêm (Thư Giãn Sâu - 15 lượt)';
+        elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Phục Hồi Ban Đêm - 15 lượt';
     } else if (state.selectedLevel === 'mixed') {
         elements.orbSubText.textContent = 'Bấm Bắt đầu để tập Cấp độ Hỗn hợp Lâm Sàng (11 lượt)';
     } else if (state.selectedLevel === 'pyramidMixed') {
@@ -764,12 +766,7 @@ function resumeWorkout() {
     state.timerInterval = setInterval(tick, 1000);
 }
 
-// Switch pause / resume on clicking same button
-elements.btnStart.addEventListener('click', () => {
-    if (state.workoutState.startsWith('paused_')) {
-        resumeWorkout();
-    }
-});
+// Switch pause / resume logic is now merged into main btnStart listener
 
 function resetWorkout() {
     clearInterval(state.timerInterval);
@@ -894,11 +891,11 @@ function enterSqueezePhase() {
         elements.orbAction.textContent = 'KEGEL NGƯỢC';
         
         if (state.selectedLevel === 'goodMorning') {
-            elements.orbSubText.textContent = `Hít vào - Đẩy nhẹ cơ PC ra ngoài (Lượt ${state.currentRep - 20}/5)`;
+            elements.orbSubText.textContent = `Hít vào - Đẩy nhẹ cơ PC ra ngoài - Lượt ${state.currentRep - 20}/5`;
         } else if (state.selectedLevel === 'powerCombo') {
-            elements.orbSubText.textContent = `Hít vào - Đẩy nhẹ cơ PC ra ngoài (Lượt ${state.currentRep - 58}/5)`;
+            elements.orbSubText.textContent = `Hít vào - Đẩy nhẹ cơ PC ra ngoài - Lượt ${state.currentRep - 58}/5`;
         } else if (state.selectedLevel === 'nightRecovery') {
-            elements.orbSubText.textContent = `Hít vào - Đẩy nhẹ cơ PC ra ngoài (Lượt ${state.currentRep}/10)`;
+            elements.orbSubText.textContent = `Hít vào - Đẩy nhẹ cơ PC ra ngoài - Lượt ${state.currentRep}/10`;
         }
     } else if (isBreathingInhale) {
         elements.orb.classList.add('relaxing');
@@ -934,13 +931,13 @@ function enterSqueezePhase() {
             }
         } else if (state.selectedLevel === 'powerCombo') {
             if (state.currentRep <= 20) {
-                elements.orbSubText.textContent = `Pha 1: Nhấp nhả nhanh 1s (Hiệp 1/5) - Lượt ${state.currentRep}/20`;
+                elements.orbSubText.textContent = `Siết cơ PC chặt nhất có thể - Lượt ${state.currentRep}/20`;
             } else if (state.currentRep >= 22 && state.currentRep <= 33) {
-                elements.orbSubText.textContent = `Pha 2: Siết giữ 3 giây (Hiệp 2/5) - Lượt ${state.currentRep - 21}/12`;
+                elements.orbSubText.textContent = `Pha 2: Siết giữ 3 giây - Lượt ${state.currentRep - 21}/12`;
             } else if (state.currentRep >= 35 && state.currentRep <= 46) {
-                elements.orbSubText.textContent = `Pha 3: Siết giữ 3 giây (Hiệp 3/5) - Lượt ${state.currentRep - 34}/12`;
+                elements.orbSubText.textContent = `Pha 3: Siết giữ 3 giây - Lượt ${state.currentRep - 34}/12`;
             } else if (state.currentRep >= 48 && state.currentRep <= 57) {
-                elements.orbSubText.textContent = `Pha 4: Cực hạn - Siết giữ 5 giây (Hiệp 4/5) - Lượt ${state.currentRep - 47}/10`;
+                elements.orbSubText.textContent = `Pha 4: Cực hạn - Siết giữ 5 giây - Lượt ${state.currentRep - 47}/10`;
             }
         } else {
             elements.orbSubText.textContent = 'Co thắt cơ PC chặt nhất có thể';
@@ -1029,24 +1026,24 @@ function enterRelaxPhase() {
         elements.orbAction.textContent = (state.currentRep === 58) ? 'CHUẨN BỊ' : 'NGHỈ NGƠI';
         
         if (state.currentRep === 21) {
-            elements.orbSubText.textContent = 'Nghỉ phục hồi (30s) - Chuẩn bị Pha 2';
+            elements.orbSubText.textContent = 'Nghỉ phục hồi 30s - Chuẩn bị Pha 2';
         } else if (state.currentRep === 34) {
-            elements.orbSubText.textContent = 'Nghỉ phục hồi (30s) - Chuẩn bị Pha 3';
+            elements.orbSubText.textContent = 'Nghỉ phục hồi 30s - Chuẩn bị Pha 3';
         } else if (state.currentRep === 47) {
-            elements.orbSubText.textContent = 'Nghỉ phục hồi (1 phút) - Chuẩn bị Pha 4';
+            elements.orbSubText.textContent = 'Nghỉ phục hồi 1 phút - Chuẩn bị Pha 4';
         } else if (state.currentRep === 58) {
-            elements.orbSubText.textContent = 'Nghỉ phục hồi (10s) - Chuẩn bị tập Kegel ngược';
+            elements.orbSubText.textContent = 'Nghỉ phục hồi 10s - Chuẩn bị tập Kegel ngược';
         }
     } else if (isReverseKegelRest) {
         elements.orb.classList.add('relaxing');
         elements.orbAction.textContent = 'NGHỈ';
         
         if (state.selectedLevel === 'goodMorning') {
-            elements.orbSubText.textContent = `Thở ra - Thả lỏng cơ PC tự nhiên (Lượt ${state.currentRep - 20}/5)`;
+            elements.orbSubText.textContent = `Thở ra - Thả lỏng cơ PC tự nhiên - Lượt ${state.currentRep - 20}/5`;
         } else if (state.selectedLevel === 'powerCombo') {
-            elements.orbSubText.textContent = `Thở ra - Thả lỏng cơ PC tự nhiên (Lượt ${state.currentRep - 58}/5)`;
+            elements.orbSubText.textContent = `Thở ra - Thả lỏng cơ PC tự nhiên - Lượt ${state.currentRep - 58}/5`;
         } else if (state.selectedLevel === 'nightRecovery') {
-            elements.orbSubText.textContent = `Thở ra - Thả lỏng cơ PC tự nhiên (Lượt ${state.currentRep}/10)`;
+            elements.orbSubText.textContent = `Thở ra - Thả lỏng cơ PC tự nhiên - Lượt ${state.currentRep}/10`;
         }
     } else if (isBreathingExhale) {
         elements.orb.classList.add('relaxing');
@@ -1064,7 +1061,7 @@ function enterRelaxPhase() {
             elements.orbSubText.textContent = 'Thả nhanh';
         } else if (state.selectedLevel === 'powerCombo') {
             if (state.currentRep <= 20) {
-                elements.orbSubText.textContent = 'Thả nhanh';
+                elements.orbSubText.textContent = 'Thả lỏng cơ sàn chậu hoàn toàn';
             } else if (state.currentRep >= 22 && state.currentRep <= 33) {
                 elements.orbSubText.textContent = 'Thả lỏng 3 giây';
             } else if (state.currentRep >= 35 && state.currentRep <= 46) {
