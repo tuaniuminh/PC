@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=1.0.9">
+    <link rel="stylesheet" href="styles.css?v=1.1.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -65,9 +65,16 @@
             
             <!-- SECTION: PRACTICE -->
             <section id="tab-practice" class="content-section active">
-                <div class="header-section">
-                    <h1>Rèn Luyện Mỗi Ngày</h1>
-                    <p class="subtitle">Chọn cấp độ phù hợp và làm theo chỉ dẫn của vòng tròn sinh học.</p>
+                <div class="header-section practice-header">
+                    <div>
+                        <h1>Rèn Luyện Mỗi Ngày</h1>
+                        <p class="subtitle">Chọn cấp độ phù hợp và làm theo chỉ dẫn của vòng tròn sinh học.</p>
+                    </div>
+                    <!-- Trạng thái đồng bộ ở trang chủ -->
+                    <div class="home-sync-status" id="home-sync-status" title="Nhấp để cài đặt hoặc xem chi tiết tài khoản Cloud">
+                        <span class="sync-dot" id="home-sync-dot"></span>
+                        <span id="home-sync-text">Chưa kết nối Cloud</span>
+                    </div>
                 </div>
 
                 <div class="practice-grid">
@@ -888,6 +895,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=1.0.9"></script>
+    <script src="app.js?v=1.1.0"></script>
 </body>
 </html>

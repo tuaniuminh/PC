@@ -484,7 +484,7 @@ function setupEventHandlers() {
     // 9. Event delegation cho tất cả sự kiện tương tác trong Auth Modal và Cloud Sync
     document.addEventListener('click', (e) => {
         // Mở Auth Modal
-        const cloudSyncBtn = e.target.closest('#btn-cloud-sync');
+        const cloudSyncBtn = e.target.closest('#btn-cloud-sync') || e.target.closest('#home-sync-status');
         if (cloudSyncBtn) {
             openAuthModal();
             return;
@@ -1464,22 +1464,78 @@ function updateAuthUI(user) {
     const fieldsDiv = document.getElementById('auth-form-fields');
     const profileDiv = document.getElementById('user-profile-section');
     const profileEmail = document.getElementById('user-profile-email');
-    const cloudBtnText = document.getElementById('cloud-sync-status-text');
-    const cloudBtn = document.getElementById('btn-cloud-sync');
     
     if (user) {
         if (fieldsDiv) fieldsDiv.style.display = 'none';
         if (profileDiv) profileDiv.style.display = 'block';
         if (profileEmail) profileEmail.textContent = user.email;
-        if (cloudBtnText) cloudBtnText.textContent = 'Đã đồng bộ';
-        if (cloudBtn) cloudBtn.classList.add('online');
+        updateSyncStatusUI('online');
     } else {
         if (fieldsDiv) fieldsDiv.style.display = 'block';
         if (profileDiv) profileDiv.style.display = 'none';
+        updateSyncStatusUI('offline');
+    }
+}
+
+function updateSyncStatusUI(status) {
+    const cloudBtn = document.getElementById('btn-cloud-sync');
+    const cloudBtnText = document.getElementById('cloud-sync-status-text');
+    const homeSyncDot = document.getElementById('home-sync-dot');
+    const homeSyncText = document.getElementById('home-sync-text');
+    const homeSyncStatus = document.getElementById('home-sync-status');
+    
+    if (homeSyncDot) {
+        homeSyncDot.style.animation = 'none';
+    }
+    
+    if (status === 'offline') {
         if (cloudBtnText) cloudBtnText.textContent = 'Đồng bộ Cloud';
         if (cloudBtn) {
+            cloudBtn.classList.remove('online', 'syncing');
+        }
+        if (homeSyncDot) homeSyncDot.style.backgroundColor = '#9ca3af';
+        if (homeSyncText) homeSyncText.textContent = 'Chưa kết nối Cloud';
+        if (homeSyncStatus) {
+            homeSyncStatus.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+            homeSyncStatus.style.background = 'rgba(255, 255, 255, 0.03)';
+        }
+    } else if (status === 'syncing') {
+        if (cloudBtnText) cloudBtnText.textContent = 'Đang đồng bộ...';
+        if (cloudBtn) {
             cloudBtn.classList.remove('online');
+            cloudBtn.classList.add('syncing');
+        }
+        if (homeSyncDot) {
+            homeSyncDot.style.backgroundColor = '#f59e0b';
+            homeSyncDot.style.animation = 'pulse-dot 1.2s infinite alternate';
+        }
+        if (homeSyncText) homeSyncText.textContent = 'Đang đồng bộ...';
+        if (homeSyncStatus) {
+            homeSyncStatus.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+            homeSyncStatus.style.background = 'rgba(245, 158, 11, 0.04)';
+        }
+    } else if (status === 'online') {
+        if (cloudBtnText) cloudBtnText.textContent = 'Đã đồng bộ';
+        if (cloudBtn) {
             cloudBtn.classList.remove('syncing');
+            cloudBtn.classList.add('online');
+        }
+        if (homeSyncDot) homeSyncDot.style.backgroundColor = '#10b981';
+        if (homeSyncText) homeSyncText.textContent = 'Đã đồng bộ Cloud';
+        if (homeSyncStatus) {
+            homeSyncStatus.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+            homeSyncStatus.style.background = 'rgba(16, 185, 129, 0.04)';
+        }
+    } else if (status === 'error') {
+        if (cloudBtnText) cloudBtnText.textContent = 'Lỗi đồng bộ';
+        if (cloudBtn) {
+            cloudBtn.classList.remove('syncing');
+        }
+        if (homeSyncDot) homeSyncDot.style.backgroundColor = '#ef4444';
+        if (homeSyncText) homeSyncText.textContent = 'Lỗi đồng bộ';
+        if (homeSyncStatus) {
+            homeSyncStatus.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+            homeSyncStatus.style.background = 'rgba(239, 68, 68, 0.04)';
         }
     }
 }
@@ -1558,11 +1614,7 @@ async function syncDataOnline() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
         
-        const cloudBtn = document.getElementById('btn-cloud-sync');
-        const cloudBtnText = document.getElementById('cloud-sync-status-text');
-        
-        if (cloudBtn) cloudBtn.classList.add('syncing');
-        if (cloudBtnText) cloudBtnText.textContent = 'Đang đồng bộ...';
+        updateSyncStatusUI('syncing');
         
         // 1. Tải log online từ Supabase
         const { data: onlineLogs, error } = await supabaseClient
@@ -1642,17 +1694,10 @@ async function syncDataOnline() {
         saveData();
         renderStats();
         
-        if (cloudBtn) {
-            cloudBtn.classList.remove('syncing');
-            cloudBtn.classList.add('online');
-        }
-        if (cloudBtnText) cloudBtnText.textContent = 'Đã đồng bộ';
+        updateSyncStatusUI('online');
     } catch (e) {
         console.error("Lỗi đồng bộ online:", e);
-        const cloudBtn = document.getElementById('btn-cloud-sync');
-        const cloudBtnText = document.getElementById('cloud-sync-status-text');
-        if (cloudBtn) cloudBtn.classList.remove('syncing');
-        if (cloudBtnText) cloudBtnText.textContent = 'Lỗi đồng bộ';
+        updateSyncStatusUI('error');
     }
 }
 
@@ -1662,6 +1707,8 @@ async function uploadNewLogOnline(logEntry) {
     try {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
+        
+        updateSyncStatusUI('syncing');
         
         const { error } = await supabaseClient
             .from('pc_flex_logs')
@@ -1678,10 +1725,13 @@ async function uploadNewLogOnline(logEntry) {
         if (error) throw error;
         console.log("Tự động lưu bài tập mới lên Supabase Cloud thành công.");
         
+        updateSyncStatusUI('online');
+        
         // Cập nhật lại giao diện lịch tuần
         renderWeeklyCalendar();
     } catch (e) {
         console.error("Lỗi lưu trực tuyến:", e);
+        updateSyncStatusUI('error');
     }
 }
 
