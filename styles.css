@@ -2445,4 +2445,59 @@ body {
     }
 }
 
+/* Accordion details for other workout levels */
+.other-levels-details {
+    margin-top: 1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.other-levels-details[open] {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.other-levels-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.1rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    user-select: none;
+    list-style: none; /* Hide standard marker */
+    transition: all 0.2s ease;
+}
+
+.other-levels-summary::-webkit-details-marker {
+    display: none; /* Hide default Safari marker */
+}
+
+.other-levels-summary:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.other-levels-summary .summary-arrow {
+    transition: transform 0.3s ease;
+    color: var(--color-text-muted);
+}
+
+.other-levels-details[open] .summary-arrow {
+    transform: rotate(180deg);
+    color: var(--color-primary);
+}
+
+.other-levels-content {
+    padding: 0 0.5rem 0.75rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 
