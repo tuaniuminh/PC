@@ -305,10 +305,39 @@ const elements = {
 // --- INITIALIZE THE APP ---
 function initApp() {
     loadData();
+    autoSelectLevelByTime();
     setupEventHandlers();
     updateUIConfigs();
     renderStats();
     initSupabaseConnection();
+}
+
+// Automatically select default workout level based on the time of day
+function autoSelectLevelByTime() {
+    const hour = new Date().getHours();
+    let defaultLevel = 'goodMorning';
+    
+    if (hour >= 5 && hour < 11) {
+        defaultLevel = 'goodMorning';
+    } else if (hour >= 11 && hour < 17) {
+        defaultLevel = 'powerCombo';
+    } else {
+        defaultLevel = 'nightRecovery';
+    }
+    
+    state.selectedLevel = defaultLevel;
+    
+    // Update active class in level items list
+    const levelItems = document.querySelectorAll('.level-item');
+    if (levelItems && levelItems.length > 0) {
+        levelItems.forEach(item => {
+            if (item.getAttribute('data-level') === defaultLevel) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
 }
 
 // --- SETUP EVENT HANDLERS ---
@@ -780,17 +809,6 @@ function tick() {
         }
     } else {
         elements.orbTimer.textContent = String(state.timeRemaining).padStart(2, '0');
-        
-        // Dynamic subtext updates for Ladder levels during tick
-        if (state.workoutState === 'squeezing' && state.selectedLevel === 'ladder') {
-            if (state.timeRemaining > 6) {
-                elements.orbSubText.textContent = 'Siết nhẹ 30% lực';
-            } else if (state.timeRemaining <= 6 && state.timeRemaining > 3) {
-                elements.orbSubText.textContent = 'Siết trung bình 60% lực';
-            } else {
-                elements.orbSubText.textContent = 'Siết tối đa 100% lực!';
-            }
-        }
     }
 }
 
@@ -802,28 +820,34 @@ function enterSqueezePhase() {
         if (state.currentRep <= 20) {
             state.squeezeDuration = 1;
         } else {
-            state.squeezeDuration = 0; // Trigger relax/stretch phase immediately
+            state.squeezeDuration = 5; // Reverse Kegel (Hold)
         }
     } else if (state.selectedLevel === 'powerCombo') {
         if (state.currentRep <= 20) {
             state.squeezeDuration = 1;
         } else if (state.currentRep === 21) {
-            state.squeezeDuration = 0;
+            state.squeezeDuration = 0; // Skip squeeze to rest
         } else if (state.currentRep >= 22 && state.currentRep <= 33) {
             state.squeezeDuration = 3;
         } else if (state.currentRep === 34) {
-            state.squeezeDuration = 0;
+            state.squeezeDuration = 0; // Skip squeeze to rest
         } else if (state.currentRep >= 35 && state.currentRep <= 46) {
             state.squeezeDuration = 3;
         } else if (state.currentRep === 47) {
-            state.squeezeDuration = 0;
+            state.squeezeDuration = 0; // Skip squeeze to rest
         } else if (state.currentRep >= 48 && state.currentRep <= 57) {
             state.squeezeDuration = 5;
+        } else if (state.currentRep === 58) {
+            state.squeezeDuration = 0; // Skip squeeze to rest
         } else {
-            state.squeezeDuration = 0;
+            state.squeezeDuration = 5; // Reverse Kegel (Hold)
         }
     } else if (state.selectedLevel === 'nightRecovery') {
-        state.squeezeDuration = 0; // Reverse Kegel & deep breath only
+        if (state.currentRep <= 10) {
+            state.squeezeDuration = 5; // Reverse Kegel (Hold)
+        } else {
+            state.squeezeDuration = 5; // Deep breathing (Inhale)
+        }
     } else if (state.selectedLevel === 'mixed') {
         // Mixed logic: Reps 1-3 & 9-11 are slow (8s), Reps 4-8 are fast flicks (1s)
         if ((state.currentRep >= 1 && state.currentRep <= 3) || (state.currentRep >= 9 && state.currentRep <= 11)) {
@@ -857,52 +881,70 @@ function enterSqueezePhase() {
     state.timeRemaining = state.squeezeDuration;
     
     // UI Visual changes
-    elements.orb.classList.remove('relaxing');
-    elements.orb.classList.remove('resting');
-    elements.orb.classList.add('squeezing');
-    elements.orbAction.textContent = 'SIẾT CƠ';
+    elements.orb.classList.remove('relaxing', 'squeezing', 'resting');
     
-    // Update subtext
-    if (state.selectedLevel === 'goodMorning') {
-        if (state.currentRep <= 20) {
-            elements.orbSubText.textContent = `Pha 1: Siết nhanh nhấp nhả 1s - Lượt ${state.currentRep}/20`;
+    // Identify special states
+    const isReverseKegelHold = (state.selectedLevel === 'goodMorning' && state.currentRep >= 21) ||
+                                (state.selectedLevel === 'powerCombo' && state.currentRep >= 59) ||
+                                (state.selectedLevel === 'nightRecovery' && state.currentRep <= 10);
+    const isBreathingInhale = (state.selectedLevel === 'nightRecovery' && state.currentRep >= 11);
+    
+    if (isReverseKegelHold) {
+        elements.orb.classList.add('resting');
+        elements.orbAction.textContent = 'GIÃN CƠ';
+        
+        if (state.selectedLevel === 'goodMorning') {
+            elements.orbSubText.textContent = `Pha 2: Kegel ngược đẩy nhẹ chậu - Lượt ${state.currentRep - 20}/5`;
+        } else if (state.selectedLevel === 'powerCombo') {
+            elements.orbSubText.textContent = `Pha 5: Cooldown - Kegel ngược đẩy nhẹ chậu - Lượt ${state.currentRep - 58}/5`;
+        } else if (state.selectedLevel === 'nightRecovery') {
+            elements.orbSubText.textContent = `Pha 1: Kegel ngược đẩy nhẹ sàn chậu - Lượt ${state.currentRep}/10`;
         }
-    } else if (state.selectedLevel === 'ladder') {
-        elements.orbSubText.textContent = 'Siết nhẹ 30% lực';
-    } else if (state.selectedLevel === 'mixed') {
-        if (state.squeezeDuration === 8) {
-            elements.orbSubText.textContent = 'Nhịp chậm: Siết sâu & giữ';
-        } else {
-            elements.orbSubText.textContent = 'Nhịp nhanh: Nhấp nhanh cơ PC';
-        }
-    } else if (state.selectedLevel === 'pyramidMixed') {
-        if (state.squeezeDuration === 12) {
-            elements.orbSubText.textContent = 'Đỉnh tháp: Siết tối đa 12 giây!';
-        } else if (state.squeezeDuration === 1) {
-            elements.orbSubText.textContent = 'Nhịp nhanh: Co thắt nhanh 1s';
-        } else {
-            elements.orbSubText.textContent = `Kim tự tháp: Siết sâu ${state.squeezeDuration}s`;
-        }
-    } else if (state.selectedLevel === 'reflexMixed') {
-        if (state.squeezeDuration === 10) {
-            elements.orbSubText.textContent = 'Sức bền: Giữ co thắt 10 giây';
-        } else if (state.squeezeDuration === 1) {
-            elements.orbSubText.textContent = 'Phản xạ: Nhấp nhanh liên tục 1s';
-        } else {
-            elements.orbSubText.textContent = 'Phục hồi: Giữ trung bình 5 giây';
-        }
-    } else if (state.selectedLevel === 'powerCombo') {
-        if (state.currentRep <= 20) {
-            elements.orbSubText.textContent = `Pha 1: Nhấp nhả nhanh 1s (Hiệp 1/5) - Lượt ${state.currentRep}/20`;
-        } else if (state.currentRep >= 22 && state.currentRep <= 33) {
-            elements.orbSubText.textContent = `Pha 2: Siết giữ 3 giây (Hiệp 2/5) - Lượt ${state.currentRep - 21}/12`;
-        } else if (state.currentRep >= 35 && state.currentRep <= 46) {
-            elements.orbSubText.textContent = `Pha 3: Siết giữ 3 giây (Hiệp 3/5) - Lượt ${state.currentRep - 34}/12`;
-        } else if (state.currentRep >= 48 && state.currentRep <= 57) {
-            elements.orbSubText.textContent = `Pha 4: Cực hạn - Siết giữ 5 giây (Hiệp 4/5) - Lượt ${state.currentRep - 47}/10`;
-        }
+    } else if (isBreathingInhale) {
+        elements.orb.classList.add('relaxing');
+        elements.orbAction.textContent = 'HÍT VÀO';
+        elements.orbSubText.textContent = `Pha 2: Hít sâu chậm rãi bằng bụng - Lượt ${state.currentRep - 10}/5`;
     } else {
-        elements.orbSubText.textContent = 'Co thắt cơ PC chặt nhất có thể';
+        elements.orb.classList.add('squeezing');
+        elements.orbAction.textContent = 'SIẾT CƠ';
+        
+        if (state.selectedLevel === 'ladder') {
+            elements.orbSubText.textContent = 'Siết nhẹ 30% lực';
+        } else if (state.selectedLevel === 'mixed') {
+            if (state.squeezeDuration === 8) {
+                elements.orbSubText.textContent = 'Nhịp chậm: Siết sâu & giữ';
+            } else {
+                elements.orbSubText.textContent = 'Nhịp nhanh: Nhấp nhanh cơ PC';
+            }
+        } else if (state.selectedLevel === 'pyramidMixed') {
+            if (state.squeezeDuration === 12) {
+                elements.orbSubText.textContent = 'Đỉnh tháp: Siết tối đa 12 giây!';
+            } else if (state.squeezeDuration === 1) {
+                elements.orbSubText.textContent = 'Nhịp nhanh: Co thắt nhanh 1s';
+            } else {
+                elements.orbSubText.textContent = `Kim tự tháp: Siết sâu ${state.squeezeDuration}s`;
+            }
+        } else if (state.selectedLevel === 'reflexMixed') {
+            if (state.squeezeDuration === 10) {
+                elements.orbSubText.textContent = 'Sức bền: Giữ co thắt 10 giây';
+            } else if (state.squeezeDuration === 1) {
+                elements.orbSubText.textContent = 'Phản xạ: Nhấp nhanh liên tục 1s';
+            } else {
+                elements.orbSubText.textContent = 'Phục hồi: Giữ trung bình 5 giây';
+            }
+        } else if (state.selectedLevel === 'powerCombo') {
+            if (state.currentRep <= 20) {
+                elements.orbSubText.textContent = `Pha 1: Nhấp nhả nhanh 1s (Hiệp 1/5) - Lượt ${state.currentRep}/20`;
+            } else if (state.currentRep >= 22 && state.currentRep <= 33) {
+                elements.orbSubText.textContent = `Pha 2: Siết giữ 3 giây (Hiệp 2/5) - Lượt ${state.currentRep - 21}/12`;
+            } else if (state.currentRep >= 35 && state.currentRep <= 46) {
+                elements.orbSubText.textContent = `Pha 3: Siết giữ 3 giây (Hiệp 3/5) - Lượt ${state.currentRep - 34}/12`;
+            } else if (state.currentRep >= 48 && state.currentRep <= 57) {
+                elements.orbSubText.textContent = `Pha 4: Cực hạn - Siết giữ 5 giây (Hiệp 4/5) - Lượt ${state.currentRep - 47}/10`;
+            }
+        } else {
+            elements.orbSubText.textContent = 'Co thắt cơ PC chặt nhất có thể';
+        }
     }
     
     elements.orbTimer.textContent = String(state.timeRemaining).padStart(2, '0');
