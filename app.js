@@ -721,6 +721,7 @@ function startWorkout() {
     state.workoutState = 'squeezing';
     state.currentRep = 1;
     state.timeRemaining = state.squeezeDuration;
+    requestWakeLock();
     
     // Toggle buttons state
     elements.btnReset.disabled = false;
@@ -745,6 +746,7 @@ function startWorkout() {
 function pauseWorkout() {
     clearInterval(state.timerInterval);
     state.timerInterval = null;
+    releaseWakeLock();
     
     // Save current active state before pausing
     const oldState = state.workoutState;
@@ -762,6 +764,7 @@ function resumeWorkout() {
     // Restore state from paused state
     const originalState = state.workoutState.replace('paused_', '');
     state.workoutState = originalState;
+    requestWakeLock();
     
     // Change UI state
     elements.textStart.textContent = 'Tạm dừng';
@@ -785,6 +788,7 @@ function resetWorkout() {
     clearInterval(state.timerInterval);
     state.timerInterval = null;
     state.workoutState = 'idle';
+    releaseWakeLock();
     
     // Restore Level select availability
     elements.levelItems.forEach(item => item.style.pointerEvents = 'auto');
@@ -1118,6 +1122,7 @@ function finishWorkout() {
     clearInterval(state.timerInterval);
     state.timerInterval = null;
     state.workoutState = 'completed';
+    releaseWakeLock();
     
     // Visual indicators
     elements.orb.classList.remove('squeezing', 'relaxing');
@@ -1785,6 +1790,60 @@ function closeAuthModal() {
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'none';
 }
+
+// --- SCREEN WAKE LOCK API ---
+let wakeLock = null;
+
+async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) {
+        console.log('Wake Lock API not supported in this browser.');
+        return;
+    }
+    try {
+        if (!wakeLock) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Screen Wake Lock activated.');
+            
+            wakeLock.addEventListener('release', () => {
+                console.log('Screen Wake Lock was released.');
+                wakeLock = null;
+            });
+        }
+    } catch (err) {
+        console.warn(`Failed to request Screen Wake Lock: ${err.message}`);
+    }
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+        console.log('Screen Wake Lock released manually.');
+    }
+}
+
+// Handle page visibility change to re-request Wake Lock if still training
+document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible') {
+        const activeStates = ['squeezing', 'relaxing', 'resting'];
+        if (activeStates.includes(state.workoutState)) {
+            await requestWakeLock();
+        }
+    }
+});
+
+// --- MOBILE GESTURE & TOUCH ZOOM PREVENTION ---
+// Prevent pinch-to-zoom (multi-touch zoom)
+document.addEventListener('touchstart', function (event) {
+    if (event.touches.length > 1) {
+        event.preventDefault();
+    }
+}, { passive: false });
+
+// Prevent iOS gesture-based scaling
+document.addEventListener('gesturestart', function (event) {
+    event.preventDefault();
+});
 
 // --- START APP ON DOCUMENT LOAD ---
 document.addEventListener('DOMContentLoaded', () => {
